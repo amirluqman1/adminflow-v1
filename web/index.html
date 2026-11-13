@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="referrer" content="no-referrer">
+  <title>AdminFlow</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <header class="topbar" id="topbar" hidden>
+    <a href="#/" class="brand">AdminFlow</a>
+    <nav id="nav"></nav>
+    <button type="button" class="link" id="signOut">Keluar</button>
+  </header>
+  <main id="app" aria-live="polite"><p class="muted center">Memuatkan…</p></main>
+  <div id="toast" role="status" hidden></div>
+  <script>
+    // Show start-up failures (e.g. missing config) instead of an endless "Memuatkan…".
+    addEventListener('error', e => { const a = document.getElementById('app'); if (a && /Memuatkan/.test(a.textContent)) { a.innerHTML = '<p class="error center"></p>'; a.firstChild.textContent = 'Aplikasi gagal dimulakan: ' + e.message; } });
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

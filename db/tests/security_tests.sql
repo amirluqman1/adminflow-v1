@@ -198,6 +198,7 @@ begin
     r := r || test.expect('direct DELETE on audit blocked', $$delete from public.audit_logs$$, 'permission denied for table audit_logs');
     r := r || test.expect('token_hash unreadable', $$select token_hash from public.account_invitations$$, 'permission denied for table account_invitations');
     r := r || test.expect('bootstrap not callable by users', $$select app.bootstrap_company('x','y','z@example.com')$$, 'permission denied for function bootstrap_company');
+    r := r || test.expect('bootstrap_group not callable by users', $$select app.bootstrap_group('x','y','z@example.com','[{"name":"Z Co"}]')$$, 'permission denied for function bootstrap_group');
 
     -- ============================================================ 4. leave
     perform test.login(u_staff_a);
@@ -279,6 +280,21 @@ begin
     r := r || test.eq('dashboard: staff sees own scope only', (select (public.dashboard_summary() ->> 'total_staff')::bigint), 1);
 
     perform test.login(null);
+    -- ============================================================ 7. bootstrap_group (DB admin)
+    declare g jsonb; g_company uuid;
+    begin
+      g := app.bootstrap_group('Test Group', 'Group Owner', 'GOwner@Example.com',
+             '[{"name":"Ent X Sdn Bhd","registration_no":"202401000009","outlets":["X One","X Two"]},
+               {"name":"Ent Y Enterprise","outlets":["Y One"]}]');
+      g_company := (g ->> 'company_id')::uuid;
+      r := r || test.eq('bootstrap_group: 2 Syarikat created', (select count(*) from public.legal_entities where company_id = g_company), 2);
+      r := r || test.eq('bootstrap_group: 3 outlets, all linked', (select count(*) from public.outlets where company_id = g_company and legal_entity_id is not null), 3);
+      r := r || test.eq('bootstrap_group: outlets under right Syarikat', (select count(*) from public.outlets o join public.legal_entities e on e.id = o.legal_entity_id where o.company_id = g_company and e.name = 'Ent X Sdn Bhd'), 2);
+      r := r || test.eq('bootstrap_group: owner invite pending, email lowercased', (select count(*) from public.account_invitations where company_id = g_company and role = 'owner' and email = 'gowner@example.com' and accepted_at is null), 1);
+      r := r || test.eq('bootstrap_group: owner employee at HQ', (select count(*) from public.employees where company_id = g_company and outlet_id is null and position = 'Owner'), 1);
+    end;
+    r := r || test.expect('bootstrap_group: needs a Syarikat', $$select app.bootstrap_group('G2','O','o@example.com','[]')$$, 'entities_required');
+
     r := r || test.expect('db admin: audit UPDATE blocked', $$update public.audit_logs set note = 'x'$$, 'audit_logs_are_append_only');
     r := r || test.expect('db admin: audit DELETE blocked', $$delete from public.audit_logs$$, 'audit_logs_are_append_only');
 

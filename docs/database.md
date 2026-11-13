@@ -1,6 +1,6 @@
 # AdminFlow V1 — Database design (Phase 2)
 
-Status: applied and tested on Neon branch `development` (109/109 security tests pass). Production not touched.
+Status: 001–004 applied on Neon `development`; 005–006 tested locally (116/116 PASS) but not yet applied to `development`. Production not touched.
 
 ## Architecture
 
@@ -74,6 +74,7 @@ A login with no active profile (not invited, or deactivated) sees nothing.
 | `create_task`, `update_task` | Owner, Admin, Manager (own outlets) |
 | `set_task_status` | Assignee: todo/in_progress/completed. Manager+: verify, send back (reason), cancel (reason). No self-verify |
 | `dashboard_summary()` | Everyone; numbers automatically scoped by RLS |
+| `app.bootstrap_group(group, owner_name, owner_email, entities jsonb)` | DB admin only (not exposed). Group + Syarikat + outlets + Owner invite |
 
 Errors: SQLSTATE `42501` (HTTP 403) with message `not_authorized` / `forbidden`;
 SQLSTATE `P0001` (HTTP 400) with codes `not_found`, `leave_overlap`, `reason_required`,
@@ -82,7 +83,7 @@ SQLSTATE `P0001` (HTTP 400) with codes `not_found`, `leave_overlap`, `reason_req
 `detail` holds an English explanation; the UI shows a Bahasa Melayu message per code.
 
 ## Audit actions
-`company.bootstrap, outlet.create/update, employee.create/update/deactivate/reactivate,
+`company.bootstrap, legal_entity.create/update, outlet.create/update, employee.create/update/deactivate/reactivate,
 account.activate/deactivate/role_change, manager_outlet.assign/remove, invitation.create/revoke/accept,
 leave.submit/submit_on_behalf/submit_auto_approved/approve/reject/cancel,
 task.create/update/reassign/status_in_progress/status_todo/status_completed/verify/send_back/cancel`.
@@ -91,6 +92,11 @@ old/new data (invitation token hashes stripped) and timestamp.
 
 ## Known limits / later phases
 - Neon Free plan cannot protect the `production` branch (limit reached). Be careful with production.
-- Neon Auth still allows open sign-up and Google login; tightened in Phase 3. Unlinked users see nothing.
+- Neon Auth on `development` (checked 2026-11-13): email verification NOT required, shared Google login ON,
+  sessions not revoked on password reset. Phase 3 hardening to do (Console → Auth, or Neon API
+  `PATCH .../auth/email_and_password` + `DELETE .../auth/oauth_providers/google`):
+  `require_email_verification=true`, `send_verification_email_on_sign_up=true`,
+  `revoke_sessions_on_password_reset=true`, remove Google (or use your own Google credentials).
+  Sign-up must stay open (invitees sign up themselves); unlinked users see nothing.
 - Leave balances, leave type configuration, attachments (MC slips): later phase.
 - Real HTTP tests through the Data API need network access to `*.neon.tech` from the dev machine (Phase 3).
