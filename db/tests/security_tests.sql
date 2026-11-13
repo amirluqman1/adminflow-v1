@@ -2,7 +2,7 @@
 -- Installs test.run_all(): plays every role through the real RPC functions with simulated JWT
 -- claims + `SET ROLE authenticated`, asserts each rule, then ROLLS BACK all test data.
 --
--- Prerequisites (dev branch / local stub only — NEVER production):
+-- Prerequisites (development branch / local stub only — NEVER production):
 --   neon_auth users with these emails, all emailVerified = true except unverified@example.com:
 --   owner@, admin@, mgr.a@, mgr.b@, staff.a@, staff.b@, unverified@, stranger@, owner2@ (example.com)
 -- Usage:  select * from test.run_all();

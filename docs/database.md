@@ -1,6 +1,6 @@
 # AdminFlow V1 — Database design (Phase 2)
 
-Status: applied and tested on Neon branch `dev` (98/98 security tests pass). Production not touched.
+Status: applied and tested on Neon branch `development` (98/98 security tests pass). Production not touched.
 
 ## Architecture
 

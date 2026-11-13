@@ -9,17 +9,17 @@
 | `tests/security_tests.sql` | Installs `test.run_all()` — 98 security checks, auto-rollback |
 | `tests/local_neon_stub.sql` | Imitates Neon roles/auth for a local Postgres. Never run on Neon |
 
-Migrations were applied to the Neon **dev** branch on 2026-11-13. Production is untouched.
+Migrations were applied to the Neon **development** branch on 2026-11-13. Production is untouched.
 
 ## Run the tests
 
-On Neon `dev` (SQL Editor or MCP):
+On Neon `development` (SQL Editor or MCP):
 
 ```sql
 select * from test.run_all();          -- every row should be PASS; data is rolled back
 ```
 
-The dev branch needs these Neon Auth users (emailVerified = true except `unverified@`):
+The `development` branch needs these Neon Auth users (emailVerified = true except `unverified@`):
 `owner@ admin@ mgr.a@ mgr.b@ staff.a@ staff.b@ unverified@ stranger@ owner2@` — all `@example.com`.
 
 Locally (Postgres 16+ with btree_gist/pgcrypto):

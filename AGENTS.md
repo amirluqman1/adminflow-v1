@@ -15,7 +15,10 @@ Roles: Owner, Admin, Manager, Staff. Some employees have no login.
 
 ## Branches
 - Neon branch `production`: **never** run migrations or tests here without the owner's explicit approval.
-- Neon branch `dev`: all development and testing happens here.
+- Neon branch `development` (id `br-old-hat-b3z70ypx`): all development and testing happens here.
+  Always call it "development" (never "dev") in code, docs and messages — owner preference.
+- `production` is NOT protected (Free plan has no protected branches). Never delete, reset or
+  restore it, and never copy a `development` connection string anywhere (see docs/database.md).
 - Git: never push to `main` directly; use your own feature branch and a PR.
 
 ## Non-negotiable security rules
@@ -47,6 +50,6 @@ Roles: Owner, Admin, Manager, Staff. Some employees have no login.
 ## How to change the database
 1. Add a new numbered file `db/migrations/00N_description.sql` (never edit applied migrations).
 2. Run it locally and run `db/tests/security_tests.sql` (see `db/README.md`): all tests must PASS.
-3. Apply to Neon `dev`, then run `select * from test.run_all();` on `dev`: all PASS.
+3. Apply to Neon `development`, then run `select * from test.run_all();` on `development`: all PASS.
 4. Add tests for every new rule in `db/tests/security_tests.sql`.
 5. Update `docs/database.md`.
