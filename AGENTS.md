@@ -37,13 +37,18 @@ Roles: Owner, Admin, Manager, Staff. Some employees have no login.
 
 ## Business rules (approved by the owner)
 - Structure: one Group (`companies`) → several Syarikat (`legal_entities`, Owner-only) → outlets.
-  One Owner login sees all. One Admin covers all Syarikat. Managers are outlet-scoped.
-- Leave approval: Staff → Manager (own outlets) / Admin / Owner. Manager → Admin / Owner.
-  Admin → Owner / another Admin. Owner → another Owner; a sole Owner's leave is auto-approved and audited.
-  Nobody approves their own leave. Rejection needs a reason.
-- Roles ("Option C"): Staff ↔ Manager by Admin or Owner. Anything involving Admin/Owner by Owner only.
+- ONLY the Owner sees across Syarikat. An Admin sees/manages only the Syarikat the Owner assigned
+  (`admin_entities`, Owner-only). Admins may create/edit outlets inside their own Syarikat.
+- Role `manager` is shown in the UI as **"Admin Outlet"** (outlet-scoped). Keep the DB enum `manager`.
+- Every outlet belongs to a Syarikat; every employee has a Syarikat (NULL = group level, Owner-only).
+- Leave approval: Staff → Admin Outlet (own outlets) / Admin (own Syarikat) / Owner.
+  Admin Outlet → Admin (own Syarikat) / Owner. Admin → Owner, OR the Admin self-approves
+  (Owner exception: flagged `self_approved`, audited `leave.self_approve`, Owner notified).
+  Owner → another Owner; a sole Owner's leave is auto-approved. Staff and Admin Outlets never
+  approve their own leave. Rejection needs a reason.
+- Roles ("Option C"): Staff ↔ Manager by Owner, or Admin inside own Syarikat. Anything involving Admin/Owner by Owner only.
   Nobody changes their own role. The last active Owner cannot be removed.
-- Managers can cover several outlets; only Owner/Admin assign outlets.
+- Managers can cover several outlets; Owner (any) or Admin (own Syarikat) assigns them.
 - Leave on behalf / task updates on behalf are allowed only for employees **without** an active login.
 - Tasks: To Do → In Progress → Completed → Verified (or Cancelled with reason).
   The assignee cannot verify their own task.

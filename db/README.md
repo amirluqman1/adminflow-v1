@@ -7,10 +7,12 @@
 | `migrations/003_audit.sql` | Automatic audit triggers, append-only protection |
 | `migrations/004_rpc.sql` | All write functions (the app's write API), dashboard, bootstrap |
 | `migrations/005_legal_entities.sql` | Group → Syarikat → Outlet: `legal_entities` table, outlet link, Owner-only RPCs |
-| `tests/security_tests.sql` | Installs `test.run_all()` — 109 security checks, auto-rollback |
+| `migrations/006_entity_scoped_admin.sql` | Admin limited to own Syarikat (`admin_entities`), employee Syarikat, Admin self-approval + Owner `notifications` |
+| `tests/security_tests.sql` | Installs `test.run_all()` — 149 security checks, auto-rollback |
 | `tests/local_neon_stub.sql` | Imitates Neon roles/auth for a local Postgres. Never run on Neon |
 
-Migrations were applied to the Neon **development** branch on 2026-11-13. Production is untouched.
+Migrations 001–004 were applied to the Neon **development** branch on 2026-11-13; 005–006 are pending
+(Neon connector outage) and must be applied + tested there next. Production is untouched.
 
 ## Run the tests
 
@@ -21,7 +23,7 @@ select * from test.run_all();          -- every row should be PASS; data is roll
 ```
 
 The `development` branch needs these Neon Auth users (emailVerified = true except `unverified@`):
-`owner@ admin@ mgr.a@ mgr.b@ staff.a@ staff.b@ unverified@ stranger@ owner2@` — all `@example.com`.
+`owner@ admin@ admin.b@ mgr.a@ mgr.b@ staff.a@ staff.b@ unverified@ stranger@ owner2@` — all `@example.com`.
 
 Locally (Postgres 16+ with btree_gist/pgcrypto):
 
@@ -35,8 +37,9 @@ psql -U neondb_owner -d neondb -c "select * from test.run_all()"
 ## Create the real company (Phase 3, DB admin only)
 
 ```sql
-select app.bootstrap_company('Company Name Sdn Bhd', 'Owner Full Name', 'owner@email',
-                             array['Outlet 1', 'Outlet 2', 'Outlet 3']);
+select app.bootstrap_company('Group Utama', 'Owner Full Name', 'owner@email',
+  '[{"name":"Syarikat A","registration_no":"...","outlets":["Outlet 1"]},
+    {"name":"Syarikat B","outlets":["Outlet 2"]}]');
 -- returns a one-time owner invitation token; the owner signs up with that email,
 -- verifies it, and calls rpc('accept_invitation', { p_token })
 ```

@@ -1,6 +1,7 @@
 # AdminFlow V1 — Database design (Phase 2)
 
-Status: applied and tested on Neon branch `development` (109/109 security tests pass). Production not touched.
+Status: 001–004 applied on Neon `development`; 005–006 pass all 149 security tests locally and are
+pending on Neon (connector outage). Production not touched.
 
 ## Architecture
 
@@ -25,7 +26,9 @@ Postgres schemas:
 | `outlets` | Branches, each linked to a Syarikat (`legal_entity_id`) | Unique name/code per group |
 | `employees` | All workers, with or without login | `outlet_id` null = HQ. Status active/inactive, never deleted |
 | `profiles` | Login accounts (employee ↔ Neon Auth user) | 1 per employee, `auth_user_id` unique, holds `role` |
-| `manager_outlets` | Which outlets a Manager covers | Only Owner/Admin assign |
+| `manager_outlets` | Which outlets a Manager ("Admin Outlet") covers | Owner, or Admin inside own Syarikat |
+| `admin_entities` | Which Syarikat an Admin covers | Owner only |
+| `notifications` | In-app notifications (e.g. Admin self-approved leave → Owner) | Recipient-only; written by functions |
 | `account_invitations` | Invitation-only onboarding | Token stored as SHA-256 hash, 7-day expiry, one pending per employee |
 | `leave_requests` | Leave | No overlapping pending/approved leave (exclusion constraint); reject needs reason |
 | `tasks` | Tasks | Status flow enforced; overdue computed in `task_overview` |
@@ -41,16 +44,18 @@ companies (Group: the family business, one Owner login sees everything)
         └── outlets (one or many per Syarikat) ── manager_outlets ── Managers
 ```
 Reports can be grouped per outlet or per Syarikat (`dashboard_summary().staff_by_entity`).
-Future option: an Admin restricted to one Syarikat (not needed now: one Admin covers all).
+Admins are restricted to the Syarikat the Owner assigns (`admin_entities`); only the Owner sees across Syarikat.
 
 ## Who can see what (RLS)
 
-| | Owner | Admin | Manager | Staff |
+| | Owner | Admin | Admin Outlet (manager) | Staff |
 |---|---|---|---|---|
-| employees / profiles / leave | whole company | whole company | own outlets + self | self |
-| tasks | whole company | whole company | own outlets, created by or assigned to self | assigned to self |
-| outlets, legal_entities (names) | all | all | all | all |
-| audit_logs, account_invitations | ✅ | ✅ | ❌ | ❌ |
+| employees / profiles / leave | whole group | own Syarikat + self | own outlets + self | self |
+| tasks | whole group | own Syarikat, created by self | own outlets, created by self | assigned to self |
+| outlets / Syarikat | all | own Syarikat | own outlets | own outlet |
+| audit_logs | all | own Syarikat only | ❌ | ❌ |
+| account_invitations | all | own Syarikat | ❌ | ❌ |
+| notifications | own | own | own | own |
 
 A login with no active profile (not invited, or deactivated) sees nothing.
 
@@ -58,8 +63,9 @@ A login with no active profile (not invited, or deactivated) sees nothing.
 
 | Function | Who |
 |---|---|
-| `create_legal_entity`, `update_legal_entity` | Owner only |
-| `create_outlet(p_name, p_legal_entity_id, p_code, p_address)`, `update_outlet` | Owner, Admin |
+| `create_legal_entity`, `update_legal_entity`, `assign_admin_entity`, `remove_admin_entity` | Owner only |
+| `create_outlet(p_name, p_legal_entity_id, p_code, p_address)`, `update_outlet` | Owner; Admin inside own Syarikat |
+| `mark_notification_read(p_notification_id \| null=all)` | Everyone (own notifications) |
 | `create_employee` | Owner, Admin |
 | `update_employee` | Owner (all), Admin (not Owner), Manager (own-outlet staff only) |
 | `set_employee_status` | Owner, Admin (not Owner/Admin targets); deactivation also disables login & revokes invites |
@@ -69,7 +75,7 @@ A login with no active profile (not invited, or deactivated) sees nothing.
 | `create_invitation`, `revoke_invitation` | Owner, Admin (Owner/Admin invites: Owner only). Returns token once |
 | `accept_invitation(p_token)` | Signed-in user with verified email matching the invitation |
 | `submit_leave` | Self; on behalf of no-login employees by Owner/Admin/Manager (own outlet) |
-| `review_leave(p_leave_id, p_approve, p_note)` | Approval matrix in `AGENTS.md`; never own leave |
+| `review_leave(p_leave_id, p_approve, p_note)` | Approval matrix in `AGENTS.md`; only an Admin may approve own leave (Owner notified) |
 | `cancel_leave` | Applicant (pending only); on behalf for no-login employees |
 | `create_task`, `update_task` | Owner, Admin, Manager (own outlets) |
 | `set_task_status` | Assignee: todo/in_progress/completed. Manager+: verify, send back (reason), cancel (reason). No self-verify |

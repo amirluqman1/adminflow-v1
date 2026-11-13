@@ -22,6 +22,7 @@ alter schema public owner to neondb_owner;
 insert into neon_auth."user" (id, email, "emailVerified", name) values
  ('00000000-0000-0000-0000-0000000000a1', 'owner@example.com',  true,  'Test Owner'),
  ('00000000-0000-0000-0000-0000000000a2', 'admin@example.com',  true,  'Test Admin'),
+ ('00000000-0000-0000-0000-0000000000a8', 'admin.b@example.com', true, 'Test Admin B'),
  ('00000000-0000-0000-0000-0000000000a3', 'mgr.a@example.com',  true,  'Manager A'),
  ('00000000-0000-0000-0000-0000000000a4', 'mgr.b@example.com',  true,  'Manager B'),
  ('00000000-0000-0000-0000-0000000000a5', 'staff.a@example.com', true, 'Staff A'),
