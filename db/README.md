@@ -8,11 +8,12 @@
 | `migrations/004_rpc.sql` | All write functions (the app's write API), dashboard, bootstrap |
 | `migrations/005_legal_entities.sql` | Group → Syarikat → Outlet: `legal_entities` table, outlet link, Owner-only RPCs |
 | `migrations/006_entity_scoped_admin.sql` | Admin limited to own Syarikat (`admin_entities`), employee Syarikat, Admin self-approval + Owner `notifications` |
-| `tests/security_tests.sql` | Installs `test.run_all()` — 149 security checks, auto-rollback |
+| `migrations/007_reissue_owner_invitation.sql` | DB-admin-only `app.reissue_owner_invitation()` for a lost/expired bootstrap Owner token |
+| `tests/security_tests.sql` | Installs `test.run_all()` — 155 security checks, auto-rollback |
 | `tests/local_neon_stub.sql` | Imitates Neon roles/auth for a local Postgres. Never run on Neon |
 
-Migrations 001–004 were applied to the Neon **development** branch on 2026-11-13; 005–006 are pending
-(Neon connector outage) and must be applied + tested there next. Production is untouched.
+Migrations 001–007 are applied to the Neon **development** branch (2026-11-13, 155/155 PASS).
+Production is untouched.
 
 ## Run the tests
 
@@ -43,3 +44,13 @@ select app.bootstrap_company('Group Utama', 'Owner Full Name', 'owner@email',
 -- returns a one-time owner invitation token; the owner signs up with that email,
 -- verifies it, and calls rpc('accept_invitation', { p_token })
 ```
+
+If the Owner token is lost or expires before the Owner signs up (DB admin only, works only while the group
+has no active Owner):
+
+```sql
+select app.reissue_owner_invitation((select id from public.companies where name = 'Group Utama'));
+-- returns a new owner_invitation_token; the old one stops working
+```
+Tip: read the result as JSON text (`select app.reissue_owner_invitation(...)::text`) so the token is not
+truncated by the tool. Never paste it into commits, issues or logs.

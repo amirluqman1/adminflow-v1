@@ -11,7 +11,9 @@ Roles: Owner, Admin, Manager, Staff. Some employees have no login.
 - Neon Postgres 18, project `adminflow-v1`, AWS Singapore.
 - Neon Managed Better Auth for login (JWT `sub` = `neon_auth.user.id`).
 - Neon Data API (PostgREST-style) for reads (`from(...)`) and writes (`rpc(...)`).
-- Frontend: plain HTML/CSS/JS (Vite allowed). No framework decision yet.
+- Frontend: plain HTML/CSS/JS with Vite in `web/` (`@neondatabase/neon-js`). No UI framework.
+  UI text in Bahasa Melayu; map DB error codes to BM in `web/src/api.js`.
+  Invitation links use the URL fragment `/#invite=<token>` (never a query string: fragments are not sent to servers).
 - Neon Functions only when the database cannot do the job (for example, sending email).
 
 ## Branches

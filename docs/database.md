@@ -1,7 +1,7 @@
 # AdminFlow V1 — Database design (Phase 2)
 
-Status: 001–004 applied on Neon `development`; 005–006 pass all 149 security tests locally and are
-pending on Neon (connector outage). Production not touched.
+Status: 001–007 applied on Neon `development`; 155/155 security tests PASS there and locally;
+HTTP smoke test (Neon Auth + Data API) 21/21 PASS. Production not touched.
 
 ## Architecture
 
@@ -80,16 +80,19 @@ A login with no active profile (not invited, or deactivated) sees nothing.
 | `create_task`, `update_task` | Owner, Admin, Manager (own outlets) |
 | `set_task_status` | Assignee: todo/in_progress/completed. Manager+: verify, send back (reason), cancel (reason). No self-verify |
 | `dashboard_summary()` | Everyone; numbers automatically scoped by RLS |
+| `app.bootstrap_company(...)` | DB admin only (not exposed). Creates Group, Syarikat, outlets, Owner invite |
+| `app.reissue_owner_invitation(p_company_id)` | DB admin only (not exposed). New Owner token when the bootstrap one is lost/expired; refused (`owner_exists`) once the group has an active Owner |
 
 Errors: SQLSTATE `42501` (HTTP 403) with message `not_authorized` / `forbidden`;
 SQLSTATE `P0001` (HTTP 400) with codes `not_found`, `leave_overlap`, `reason_required`,
 `invalid_transition`, `last_owner`, `email_not_verified`, `invalid_invitation`, `already_linked`,
-`email_required`, `employee_inactive`, `not_pending`, `task_locked`, `not_a_manager`, `already_has_account`.
+`email_required`, `employee_inactive`, `not_pending`, `task_locked`, `not_a_manager`, `already_has_account`,
+`owner_exists`.
 `detail` holds an English explanation; the UI shows a Bahasa Melayu message per code.
 
 ## Audit actions
 `company.bootstrap, outlet.create/update, employee.create/update/deactivate/reactivate,
-account.activate/deactivate/role_change, manager_outlet.assign/remove, invitation.create/revoke/accept,
+account.activate/deactivate/role_change, manager_outlet.assign/remove, invitation.create/revoke/accept/reissue,
 leave.submit/submit_on_behalf/submit_auto_approved/approve/reject/cancel,
 task.create/update/reassign/status_in_progress/status_todo/status_completed/verify/send_back/cancel`.
 Each row stores the real actor (`actor_profile_id`, `actor_auth_user_id`), affected employee,
@@ -97,6 +100,9 @@ old/new data (invitation token hashes stripped) and timestamp.
 
 ## Known limits / later phases
 - Neon Free plan cannot protect the `production` branch (limit reached). Be careful with production.
-- Neon Auth still allows open sign-up and Google login; tightened in Phase 3. Unlinked users see nothing.
+- Neon Auth on `development` still allows Google login and sign-in before email verification (Phase 3 step 3,
+  waiting for owner approval). Unlinked users see nothing; `accept_invitation` refuses unverified emails.
+- OTP codes are stored hashed by Neon Auth, so automated tests mark test users verified via SQL (development only).
 - Leave balances, leave type configuration, attachments (MC slips): later phase.
-- Real HTTP tests through the Data API need network access to `*.neon.tech` from the dev machine (Phase 3).
+- Cloud agent sessions reach `development` only through the environment's allowed hosts (DB, auth, apirest of
+  endpoint `ep-green-surf-b3aqwu8p`). Production hosts are deliberately not allowed.

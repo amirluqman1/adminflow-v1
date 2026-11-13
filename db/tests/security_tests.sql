@@ -61,7 +61,7 @@ declare
   prof_owner uuid; prof_admin uuid; prof_admin_b uuid; prof_mgr_a uuid; prof_mgr_b uuid; prof_staff_a uuid; prof_staff_b uuid;
   leave_staff_a uuid; leave_mgr_a uuid; leave_admin uuid; leave_admin2 uuid; leave_owner uuid;
   task_a uuid; task_nologin uuid; task_self uuid;
-  v_company uuid;
+  v_company uuid; tok_old text;
 begin
   begin  -- everything below is rolled back at the end
     select id into u_owner    from neon_auth."user" where email = 'owner@example.com';
@@ -85,6 +85,17 @@ begin
     select o.id, o.company_id, o.legal_entity_id into outlet_a, v_company, ent_a from public.outlets o where o.name = 'Outlet Bangi';
     select o.id, o.legal_entity_id into outlet_b, ent_b from public.outlets o where o.name = 'Outlet Kajang';
 
+    -- ============================================================ 0. re-issue lost Owner token (007)
+    tok_old := tok_owner;
+    tok_owner := app.reissue_owner_invitation(v_company) ->> 'owner_invitation_token';
+    r := r || test.eq('db admin: re-issued Owner token is new', (select count(*) from (select 1 where tok_owner is not null and tok_owner <> tok_old) x), 1);
+    r := r || test.eq('db admin: still one pending Owner invitation', (select count(*) from public.account_invitations i where i.company_id = v_company and i.status = 'pending'), 1);
+    perform test.login(u_stranger);
+    r := r || test.expect('api user cannot call reissue_owner_invitation', format('select app.reissue_owner_invitation(%L)', v_company), 'permission denied for function reissue_owner_invitation');
+    perform test.login(u_owner);
+    r := r || test.expect('owner: old (replaced) token rejected', format('select public.accept_invitation(%L)', tok_old), 'invalid_invitation');
+    perform test.login(null);
+
     -- ============================================================ 1. onboarding & invitations
     perform test.login(u_stranger);
     r := r || test.expect('stranger: bad token rejected', $$select public.accept_invitation('deadbeef')$$, 'invalid_invitation');
@@ -99,6 +110,9 @@ begin
     perform test.login(u_owner2);
     r := r || test.expect('owner2: accepts own company invite', format('select public.accept_invitation(%L)', tok_owner2));
 
+    perform test.login(null);
+    r := r || test.expect('db admin: reissue refused once Owner exists', format('select app.reissue_owner_invitation(%L)', v_company), 'owner_exists');
+    r := r || test.eq('audit: Owner re-issue recorded', (select count(*) from public.audit_logs a where a.action = 'invitation.reissue'), 1);
     perform test.login(u_owner);
     emp_admin   := public.create_employee('Admin A', null, 'HR Admin', 'full_time', null, null, 'admin@example.com', 'E002', ent_a);
     emp_admin_b := public.create_employee('Admin B', null, 'HR Admin', 'full_time', null, null, 'admin.b@example.com', 'E009', ent_b);

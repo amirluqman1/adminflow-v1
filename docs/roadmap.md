@@ -71,23 +71,39 @@ plan) and `development` (all work). Always say "development", never "dev".
 |---|---|---|
 | 1 | Neon connection & architecture assessment | ✅ Done |
 | 2 | Schema, relationships, RLS, audit (migrations 001–004) | ✅ Done on Neon `development` |
-| 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006) | ✅ 149/149 tests locally · ⏳ apply & test on Neon `development` |
-| 3 | Auth, invitations, roles — **approved by owner** | ⏳ Next |
+| 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006), Owner invite re-issue (007) | ✅ Applied on Neon `development` · 155/155 tests PASS (local + `development`) |
+| 3 | Auth, invitations, roles — **approved by owner** | 🟡 In progress (steps 1, 2, 4, 6 done · 3 & 5 waiting on owner) |
 | 4 | Employee management + Staff Directory / Profile UI | — |
 | 5 | Leave & Task Management UI, Activity History | — |
 | 6 | Security testing, UI refinement, deployment (production) | — |
 
-### Phase 3 plan (approved)
-1. Apply migrations 005–006 on `development`; create Neon Auth test user `admin.b@example.com`
-   (emailVerified=true); reinstall `db/tests/security_tests.sql`; `select * from test.run_all()` → 149 PASS.
-2. Run `db/seed/real_setup.sql` on `development` with the owner's email (given in chat; never commit
-   the email or the returned token).
-3. Harden Neon Auth on `development`: disable Google login, require email verification,
-   set trusted origins, keep localhost only for development.
-4. Login & Account screen: sign up → verify email → accept invitation (`rpc('accept_invitation')`).
-5. Invitation link delivery (small Neon Function or manual link copy for MVP — ask owner).
-6. Real HTTP test through the Data API (needs network access to the Neon auth/apirest hosts;
-   request it through the environment tools if blocked).
+### Phase 3 plan (approved) — status 2026-11-13
+1. ✅ Migrations 005–006 (+ new 007) applied on `development`; Neon Auth test user `admin.b@example.com`
+   created (emailVerified=true); `db/tests/security_tests.sql` reinstalled; `test.run_all()` → **155/155 PASS**.
+2. ✅ `db/seed/real_setup.sql` run on `development` with the owner's email (not committed): Group Utama,
+   3 Syarikat, 3 outlets, Owner employee. The first token was lost (runner printed `[Object]`), so it was
+   re-issued with the new `app.reissue_owner_invitation()` (migration 007). Pending, expires 2026-11-20.
+   The token is handed to the owner privately, never committed.
+3. ⏳ Harden Neon Auth on `development` — **blocked, needs owner OK**: the agent's tool permission refused
+   changing Neon Auth settings. To do (Console → `development` → Auth, or let the agent do it after approval):
+   remove Google login; turn on "require email verification" + "send verification email on sign-up";
+   keep `allow_localhost` (development only); add the real app domain to trusted domains once hosting is chosen.
+   Until then an **unverified** sign-up can still sign in (it sees no data, and `accept_invitation` still
+   refuses unverified emails — tested).
+4. ✅ Login & Account screen in `web/` (Vite + `@neondatabase/neon-js`, Bahasa Melayu, mobile-first):
+   sign in, sign up, verify email (6-digit OTP), forgot password (OTP), accept invitation (link `/#invite=<token>`
+   or pasted code), "not linked" screen, minimal role home. E2E tested in Chromium against `development`.
+5. ⏳ Invitation link delivery — **owner to choose**: (a) manual: Owner/Admin copies the link from the app and
+   sends it via WhatsApp (zero cost, works now), or (b) automatic email via a small Neon Function + email provider.
+6. ✅ Real HTTP tests through Neon Auth + Data API: `web/scripts/http-smoke.mjs` 21/21 PASS (RLS, grants,
+   RPC errors, hidden `app` schema, anonymous/forged JWT); plus a full positive flow (accept invitation,
+   create employee, audit actor) in a separate test group.
+
+### Data on `development` (test only)
+- Group Utama (real structure, Owner invitation pending).
+- "HTTP Test Co (development only)": throwaway group for HTTP/E2E tests — logins `http.test@`, `e2e.n2@`,
+  `smoke.stranger@` (unlinked) at example.com; other example.com users are for `test.run_all()`.
+  Fully isolated from Group Utama by RLS (tested). Never copy to production.
 
 ### Later phases (not now)
 Leave balances & configurable leave types, MC attachments, production protection (paid plan),
