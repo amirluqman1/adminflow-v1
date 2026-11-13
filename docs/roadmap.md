@@ -72,7 +72,7 @@ plan) and `development` (all work). Always say "development", never "dev".
 | 1 | Neon connection & architecture assessment | ✅ Done |
 | 2 | Schema, relationships, RLS, audit (migrations 001–004) | ✅ Done on Neon `development` |
 | 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006), Owner invite re-issue (007) | ✅ Applied on Neon `development` · 155/155 tests PASS (local + `development`) |
-| 3 | Auth, invitations, roles — **approved by owner** | 🟡 In progress (steps 1, 2, 4, 6 done · 3 & 5 waiting on owner) |
+| 3 | Auth, invitations, roles — **approved by owner** | 🟡 In progress (steps 1, 2, 4, 5, 6 done · step 3 being done by the owner in Neon Console) |
 | 4 | Employee management + Staff Directory / Profile UI | — |
 | 5 | Leave & Task Management UI, Activity History | — |
 | 6 | Security testing, UI refinement, deployment (production) | — |
@@ -84,17 +84,23 @@ plan) and `development` (all work). Always say "development", never "dev".
    3 Syarikat, 3 outlets, Owner employee. The first token was lost (runner printed `[Object]`), so it was
    re-issued with the new `app.reissue_owner_invitation()` (migration 007). Pending, expires 2026-11-20.
    The token is handed to the owner privately, never committed.
-3. ⏳ Harden Neon Auth on `development` — **blocked, needs owner OK**: the agent's tool permission refused
-   changing Neon Auth settings. To do (Console → `development` → Auth, or let the agent do it after approval):
-   remove Google login; turn on "require email verification" + "send verification email on sign-up";
-   keep `allow_localhost` (development only); add the real app domain to trusted domains once hosting is chosen.
-   Until then an **unverified** sign-up can still sign in (it sees no data, and `accept_invitation` still
+3. ⏳ Harden Neon Auth on `development` — **owner is doing this himself** in Neon Console
+   (project adminflow-v1 → branch `development` → Settings → Better Auth): turn off Google; turn on
+   Sign-up with Email + "Verify at Sign-up" with **verification code** (links need a custom SMTP provider);
+   keep "Allow Localhost" ON for `development` only. Trusted domain: add the real app domain once hosting is
+   chosen (Phase 6). Next session: re-check with `GET .../auth/oauth_providers` and `.../auth/email_and_password`
+   (expect `providers: []`, `require_email_verification: true`).
+   Until done, an **unverified** sign-up can still sign in (it sees no data, and `accept_invitation` still
    refuses unverified emails — tested).
 4. ✅ Login & Account screen in `web/` (Vite + `@neondatabase/neon-js`, Bahasa Melayu, mobile-first):
    sign in, sign up, verify email (6-digit OTP), forgot password (OTP), accept invitation (link `/#invite=<token>`
    or pasted code), "not linked" screen, minimal role home. E2E tested in Chromium against `development`.
-5. ⏳ Invitation link delivery — **owner to choose**: (a) manual: Owner/Admin copies the link from the app and
-   sends it via WhatsApp (zero cost, works now), or (b) automatic email via a small Neon Function + email provider.
+5. ✅ Invitation link delivery — **owner chose (a) manual**. Home screen of Owner/Admin has "Jemput staf":
+   lists active employees without a login (RLS-scoped), choose role (Admin: Staff/Admin Outlet; Owner: all),
+   "Buat pautan" → `rpc('create_invitation')` → link shown **once** with "Salin pautan" and "Hantar WhatsApp"
+   (wa.me share text). Making a new link revokes the old one (confirm dialog). Employees without email are
+   shown as not invitable. E2E tested: Owner makes an Admin Outlet link → invitee signs up → accepts → role
+   "Admin Outlet", and does not see the invite panel. Adding employees in the UI comes in Phase 4.
 6. ✅ Real HTTP tests through Neon Auth + Data API: `web/scripts/http-smoke.mjs` 21/21 PASS (RLS, grants,
    RPC errors, hidden `app` schema, anonymous/forged JWT); plus a full positive flow (accept invitation,
    create employee, audit actor) in a separate test group.

@@ -4,6 +4,7 @@ import {
   client, configured, call, messageFor, ROLE_LABEL,
   captureInviteFromUrl, getInvite, saveInvite, clearInvite,
 } from './api.js';
+import { renderInvitePanel } from './invite.js';
 
 const app = document.getElementById('app');
 const state = { email: '', notice: '' };
@@ -299,9 +300,17 @@ function showHome(user, s) {
       ${stat(s.pending_leave, 'Cuti menunggu')}
       ${stat(s.open_tasks, 'Tugasan terbuka')}
     </div>
+    ${['owner', 'admin'].includes(s.role) ? `
+      <section class="panel">
+        <h2>Jemput staf</h2>
+        <p class="muted">Buat pautan jemputan dan hantar sendiri (salin atau WhatsApp). Staf mesti daftar dengan emel yang sama.</p>
+        <div id="invite-panel"></div>
+      </section>` : ''}
     <p class="muted">Papan pemuka penuh, direktori staf, cuti dan tugasan akan datang dalam fasa seterusnya.</p>
     <div class="stack"><button class="secondary" id="signout" type="button">Log keluar</button></div>`);
   on('signout', signOut);
+  const panel = document.getElementById('invite-panel');
+  if (panel) renderInvitePanel(panel, s.role);
 }
 
 function showError(text) {

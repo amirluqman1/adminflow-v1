@@ -17,8 +17,9 @@ provider's settings (Phase 6).
 
 ## Account flow
 
-1. Owner/Admin creates the employee and an invitation (`rpc('create_invitation')`), then shares
-   `https://<app>/#invite=<token>`. The token sits in the URL fragment, so it is never sent to a server;
+1. Owner/Admin opens **Jemput staf** on the home screen, picks a role and taps **Buat pautan**
+   (`rpc('create_invitation')`), then sends `https://<app>/#invite=<token>` with **Salin pautan** or
+   **Hantar WhatsApp**. The link is shown once; a new link revokes the old one. The token sits in the URL fragment, so it is never sent to a server;
    the app stores it in `localStorage` and removes it from the address bar.
 2. The invitee signs up with the **invited email**, enters the 6-digit code from the verification email.
 3. The app calls `rpc('accept_invitation', { p_token })`; the database checks the email matches and is verified.

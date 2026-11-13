@@ -105,3 +105,20 @@ button:disabled { opacity: 0.6; cursor: progress; }
 
 .who { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
 .who .email { color: var(--muted); font-size: 14px; word-break: break-all; }
+
+h2 { font-size: 17px; margin: 0 0 4px; color: var(--navy); }
+.panel { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 18px; }
+.small { font-size: 13px; margin: 6px 0 0; }
+.invite-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.invite-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.invite-who { display: flex; flex-direction: column; gap: 2px; }
+.invite-who .muted { word-break: break-all; }
+.invite-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.invite-actions select {
+  font: inherit; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 8px; background: #fff; color: var(--text); flex: 1 1 140px;
+}
+.invite-actions .btn, .invite-actions button { flex: 1 1 140px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.invite-out .alert { margin-top: 10px; }
+.link-box { width: 100%; font-size: 13px; margin-top: 4px; }
+.badge.pending { background: #fff4e5; color: #8a4b00; margin-top: 6px; align-self: flex-start; }
