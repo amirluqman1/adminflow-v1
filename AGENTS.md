@@ -1,0 +1,52 @@
+# AGENTS.md — rules for AI coding agents (Claude, Codex, others)
+
+This repository is worked on by more than one AI agent. Read this file and `docs/` before changing anything.
+
+## Project
+AdminFlow V1: an admin system for one Malaysian F&B company (~20 staff, 3 outlets).
+Roles: Owner, Admin, Manager, Staff. Some employees have no login.
+
+## Stack (decided, do not change without owner approval)
+- Neon Postgres 18, project `adminflow-v1`, AWS Singapore.
+- Neon Managed Better Auth for login (JWT `sub` = `neon_auth.user.id`).
+- Neon Data API (PostgREST-style) for reads (`from(...)`) and writes (`rpc(...)`).
+- Frontend: plain HTML/CSS/JS (Vite allowed). No framework decision yet.
+- Neon Functions only when the database cannot do the job (for example, sending email).
+
+## Branches
+- Neon branch `production`: **never** run migrations or tests here without the owner's explicit approval.
+- Neon branch `dev`: all development and testing happens here.
+- Git: never push to `main` directly; use your own feature branch and a PR.
+
+## Non-negotiable security rules
+1. API users (`authenticated`) get **SELECT only** on tables. All writes go through
+   `SECURITY DEFINER` functions in `db/migrations/004_rpc.sql`. Never grant INSERT/UPDATE/DELETE.
+2. Every table has RLS enabled with a SELECT policy scoped by `app.my_company_id()`.
+3. Identity comes only from `auth.uid()` (pg_session_jwt). Never trust a user id sent by the client.
+4. Every new write function must: call `app.require_me()`, check role/outlet rules,
+   call `app.label('<entity>.<action>', note)` before writing, and be granted to `authenticated` explicitly.
+5. `audit_logs` is append-only. Do not add UPDATE/DELETE paths.
+6. No hard deletes of business data. Use status fields.
+7. New functions in `public` are callable via the Data API. Helpers go in schema `app`
+   (not exposed). Extensions live in schema `extensions`.
+8. Never commit secrets, connection strings or invitation tokens.
+9. Do not use Supabase-only functions (`auth.jwt()` claims shapes, `auth.role()`, etc.).
+
+## Business rules (approved by the owner)
+- Leave approval: Staff → Manager (own outlets) / Admin / Owner. Manager → Admin / Owner.
+  Admin → Owner / another Admin. Owner → another Owner; a sole Owner's leave is auto-approved and audited.
+  Nobody approves their own leave. Rejection needs a reason.
+- Roles ("Option C"): Staff ↔ Manager by Admin or Owner. Anything involving Admin/Owner by Owner only.
+  Nobody changes their own role. The last active Owner cannot be removed.
+- Managers can cover several outlets; only Owner/Admin assign outlets.
+- Leave on behalf / task updates on behalf are allowed only for employees **without** an active login.
+- Tasks: To Do → In Progress → Completed → Verified (or Cancelled with reason).
+  The assignee cannot verify their own task.
+- Leave types and balances: simple enum now; full balance tracking is a later phase.
+
+## How to change the database
+1. Add a new numbered file `db/migrations/00N_description.sql` (never edit applied migrations).
+2. Run it locally and run `db/tests/security_tests.sql` (see `db/README.md`): all tests must PASS.
+3. Apply to Neon `dev`, then run `select * from test.run_all();` on `dev`: all PASS.
+4. Add tests for every new rule in `db/tests/security_tests.sql`.
+5. Update `docs/database.md`.
