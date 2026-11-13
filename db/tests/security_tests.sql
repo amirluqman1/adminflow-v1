@@ -61,7 +61,7 @@ declare
   prof_owner uuid; prof_admin uuid; prof_mgr_a uuid; prof_mgr_b uuid; prof_staff_a uuid; prof_staff_b uuid;
   leave_staff_a uuid; leave_mgr_a uuid; leave_admin uuid; leave_owner uuid;
   task_a uuid; task_nologin uuid; task_self uuid;
-  v_company uuid;
+  v_company uuid; ent_a uuid; ent_b uuid;
 begin
   begin  -- everything below is rolled back at the end
     select id into u_owner    from neon_auth."user" where email = 'owner@example.com';
@@ -151,6 +151,25 @@ begin
     r := r || test.expect('owner: cannot change own role', format($$select public.change_role(%L, 'staff')$$, prof_owner), 'forbidden');
     r := r || test.expect('owner: cannot deactivate self', format('select public.set_account_active(%L, false)', prof_owner), 'forbidden');
 
+    -- ============================================================ 2b. Syarikat (legal entities) under the group
+    perform test.login(u_admin);
+    r := r || test.expect('admin: cannot register a Syarikat', $$select public.create_legal_entity('Admin Co Sdn Bhd')$$, 'forbidden');
+    perform test.login(u_owner);
+    ent_a := public.create_legal_entity('Syarikat A Sdn Bhd', '202301000001');
+    ent_b := public.create_legal_entity('Syarikat B Sdn Bhd');
+    r := r || test.expect('owner: links outlet A to Syarikat A', format($$select public.update_outlet(%L, 'Outlet Bangi', %L, null, null, true)$$, outlet_a, ent_a));
+    r := r || test.expect('owner: links outlet B to Syarikat B', format($$select public.update_outlet(%L, 'Outlet Kajang', %L, null, null, true)$$, outlet_b, ent_b));
+    perform test.login(u_admin);
+    r := r || test.expect('admin: adds 2nd outlet to Syarikat A', format($$select public.create_outlet('Outlet Bangi 2', %L, 'BG2')$$, ent_a));
+    perform test.login(u_mgr_a);
+    r := r || test.expect('manager: cannot create outlet', format($$select public.create_outlet('Mgr Outlet', %L)$$, ent_a), 'forbidden');
+    r := r || test.expect('manager: cannot edit Syarikat', format($$select public.update_legal_entity(%L, 'X Sdn Bhd', null, true)$$, ent_a), 'forbidden');
+    perform test.login(u_owner2);
+    r := r || test.expect('other company: cannot use our Syarikat', format($$select public.create_outlet('Sneaky', %L)$$, ent_a), 'not_found');
+    r := r || test.eq('other company: cannot see our Syarikat', (select count(*) from public.legal_entities), 0);
+    perform test.login(u_staff_a);
+    r := r || test.eq('staff: sees Syarikat names', (select count(*) from public.legal_entities), 2);
+
     -- ============================================================ 3. visibility (RLS)
     perform test.login(u_owner);
     r := r || test.eq('owner: sees all 8 employees of own company', (select count(*) from public.employees), 8);
@@ -166,7 +185,7 @@ begin
     perform test.login(u_staff_a);
     r := r || test.eq('staff A: sees only self', (select count(*) from public.employees), 1);
     r := r || test.eq('staff A: sees only own profile', (select count(*) from public.profiles), 1);
-    r := r || test.eq('staff A: sees 3 outlet names', (select count(*) from public.outlets), 3);
+    r := r || test.eq('staff A: sees 4 outlet names', (select count(*) from public.outlets), 4);
     perform test.login(u_owner2);
     r := r || test.eq('other company: sees only own 1 employee', (select count(*) from public.employees), 1);
     r := r || test.eq('other company: none of our audit', (select count(*) from public.audit_logs a where a.company_id = v_company), 0);
@@ -254,6 +273,8 @@ begin
     r := r || test.eq('audit: token hash never stored', (select count(*) from public.audit_logs a where a.new_data ? 'token_hash' or a.old_data ? 'token_hash'), 0);
     r := r || test.eq('dashboard: no overdue left', (select (public.dashboard_summary() ->> 'overdue_tasks')::bigint), 0);
     r := r || test.eq('dashboard: owner total staff', (select (public.dashboard_summary() ->> 'total_staff')::bigint), 8);
+    r := r || test.eq('dashboard: Syarikat A has 4 staff', (select (x->>'count')::bigint from jsonb_array_elements(public.dashboard_summary()->'staff_by_entity') x where x->>'legal_entity_name' = 'Syarikat A Sdn Bhd'), 4);
+    r := r || test.eq('audit: Syarikat creation recorded', (select count(*) from public.audit_logs a where a.action = 'legal_entity.create'), 2);
     perform test.login(u_staff_a);
     r := r || test.eq('dashboard: staff sees own scope only', (select (public.dashboard_summary() ->> 'total_staff')::bigint), 1);
 

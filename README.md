@@ -11,7 +11,7 @@ Mobile-first staff, leave and task administration for a Malaysian F&B company (~
 | Phase | Status |
 |---|---|
 | 1. Neon assessment | ✅ Done |
-| 2. Schema, RLS, audit | ✅ Done on Neon `development` (98/98 security tests pass) |
+| 2. Schema, RLS, audit | ✅ Done on Neon `development` (109/109 security tests pass) |
 | 3. Auth, invitations, roles (UI + Neon Auth hardening) | ⏳ Next |
 | 4. Staff management UI | — |
 | 5. Leave & task UI | — |

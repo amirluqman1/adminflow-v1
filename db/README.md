@@ -6,7 +6,8 @@
 | `migrations/002_auth_helpers_rls.sql` | Identity helpers (`app.my_*`), RLS policies, SELECT-only grants, `task_overview` view |
 | `migrations/003_audit.sql` | Automatic audit triggers, append-only protection |
 | `migrations/004_rpc.sql` | All write functions (the app's write API), dashboard, bootstrap |
-| `tests/security_tests.sql` | Installs `test.run_all()` — 98 security checks, auto-rollback |
+| `migrations/005_legal_entities.sql` | Group → Syarikat → Outlet: `legal_entities` table, outlet link, Owner-only RPCs |
+| `tests/security_tests.sql` | Installs `test.run_all()` — 109 security checks, auto-rollback |
 | `tests/local_neon_stub.sql` | Imitates Neon roles/auth for a local Postgres. Never run on Neon |
 
 Migrations were applied to the Neon **development** branch on 2026-11-13. Production is untouched.

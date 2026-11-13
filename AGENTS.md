@@ -36,6 +36,8 @@ Roles: Owner, Admin, Manager, Staff. Some employees have no login.
 9. Do not use Supabase-only functions (`auth.jwt()` claims shapes, `auth.role()`, etc.).
 
 ## Business rules (approved by the owner)
+- Structure: one Group (`companies`) → several Syarikat (`legal_entities`, Owner-only) → outlets.
+  One Owner login sees all. One Admin covers all Syarikat. Managers are outlet-scoped.
 - Leave approval: Staff → Manager (own outlets) / Admin / Owner. Manager → Admin / Owner.
   Admin → Owner / another Admin. Owner → another Owner; a sole Owner's leave is auto-approved and audited.
   Nobody approves their own leave. Rejection needs a reason.

@@ -1,6 +1,6 @@
 # AdminFlow V1 — Database design (Phase 2)
 
-Status: applied and tested on Neon branch `development` (98/98 security tests pass). Production not touched.
+Status: applied and tested on Neon branch `development` (109/109 security tests pass). Production not touched.
 
 ## Architecture
 
@@ -20,8 +20,9 @@ Postgres schemas:
 
 | Table | Purpose | Key rules |
 |---|---|---|
-| `companies` | Tenant | Every row below has `company_id` |
-| `outlets` | Branches | Unique name/code per company |
+| `companies` | The family **Group** (one login scope) | Every row below has `company_id` |
+| `legal_entities` | Each registered **Syarikat** (Sdn Bhd + SSM no.) | Owner-only create/edit; many outlets per Syarikat |
+| `outlets` | Branches, each linked to a Syarikat (`legal_entity_id`) | Unique name/code per group |
 | `employees` | All workers, with or without login | `outlet_id` null = HQ. Status active/inactive, never deleted |
 | `profiles` | Login accounts (employee ↔ Neon Auth user) | 1 per employee, `auth_user_id` unique, holds `role` |
 | `manager_outlets` | Which outlets a Manager covers | Only Owner/Admin assign |
@@ -32,13 +33,23 @@ Postgres schemas:
 
 Composite foreign keys `(company_id, id)` make cross-company links impossible at database level.
 
+## Group → Syarikat → Outlet
+
+```
+companies (Group: the family business, one Owner login sees everything)
+  └── legal_entities (Syarikat A Sdn Bhd, Syarikat B Sdn Bhd, ...)
+        └── outlets (one or many per Syarikat) ── manager_outlets ── Managers
+```
+Reports can be grouped per outlet or per Syarikat (`dashboard_summary().staff_by_entity`).
+Future option: an Admin restricted to one Syarikat (not needed now: one Admin covers all).
+
 ## Who can see what (RLS)
 
 | | Owner | Admin | Manager | Staff |
 |---|---|---|---|---|
 | employees / profiles / leave | whole company | whole company | own outlets + self | self |
 | tasks | whole company | whole company | own outlets, created by or assigned to self | assigned to self |
-| outlets | all | all | all | all |
+| outlets, legal_entities (names) | all | all | all | all |
 | audit_logs, account_invitations | ✅ | ✅ | ❌ | ❌ |
 
 A login with no active profile (not invited, or deactivated) sees nothing.
@@ -47,7 +58,8 @@ A login with no active profile (not invited, or deactivated) sees nothing.
 
 | Function | Who |
 |---|---|
-| `create_outlet`, `update_outlet` | Owner, Admin |
+| `create_legal_entity`, `update_legal_entity` | Owner only |
+| `create_outlet(p_name, p_legal_entity_id, p_code, p_address)`, `update_outlet` | Owner, Admin |
 | `create_employee` | Owner, Admin |
 | `update_employee` | Owner (all), Admin (not Owner), Manager (own-outlet staff only) |
 | `set_employee_status` | Owner, Admin (not Owner/Admin targets); deactivation also disables login & revokes invites |
