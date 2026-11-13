@@ -1,6 +1,7 @@
 # AGENTS.md — rules for AI coding agents (Claude, Codex, others)
 
-This repository is worked on by more than one AI agent. Read this file and `docs/` before changing anything.
+This repository is worked on by more than one AI agent. Read this file, **`docs/roadmap.md`** (full brief,
+phases, what is next) and `docs/database.md` before changing anything.
 
 ## Project
 AdminFlow V1: an admin system for one Malaysian F&B company (~20 staff, 3 outlets).

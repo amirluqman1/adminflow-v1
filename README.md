@@ -2,6 +2,7 @@
 
 Mobile-first staff, leave and task administration for a Malaysian F&B company (~20 staff, 3 outlets).
 
+- **Brief, phases & what's next: [`docs/roadmap.md`](docs/roadmap.md)**
 - Database & security design: [`docs/database.md`](docs/database.md)
 - Rules for AI agents and contributors: [`AGENTS.md`](AGENTS.md)
 - Migrations and tests: [`db/`](db/README.md)
