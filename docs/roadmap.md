@@ -154,6 +154,16 @@ UI only; no database change.
 - Known limit (RLS by design): Staff do not see the *name* of who approved/rejected their leave (only date +
   note), because they cannot read other people's records. Can be added later with a small DB view if wanted.
 
+### Hosting decision (owner, 2026-11-14)
+- **Now (repo public): GitHub Pages**, free for public repos. URL `https://amirluqman1.github.io/adminflow-v1/`.
+  Built by `.github/workflows/deploy-pages.yml` from `main` only, with `npm run build:pages` (`web/.env.pages`,
+  sub-path `/adminflow-v1/`), pointing at Neon **`development`**. Owner sets Settings → Pages → Source:
+  GitHub Actions, and adds `https://amirluqman1.github.io` to Neon Auth trusted domains on `development`.
+- **When the repo goes private: Cloudflare Pages** (free, allowed for business use, unlimited bandwidth,
+  500 builds/month — build `main` only), pointing at Neon **`production`** (Phase 6, owner approval).
+  Vercel Hobby is not allowed for commercial use. GitHub Pages on a private repo needs a paid GitHub plan.
+- Owner decided to keep the company details (Syarikat names, SSM numbers, owner name) in the public repo.
+
 ### Phase 6 plan (to propose to the owner)
 Security review & automated tests in the repo (E2E scripts, HTTP smoke), UI polish, real-device check, choose
 hosting, then **production**: apply 001–007, harden Auth (trusted domain, Allow Localhost off, own SMTP

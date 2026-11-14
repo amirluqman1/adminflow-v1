@@ -29,6 +29,13 @@ npm run dev                               # http://localhost:5173
 `.env*.local` is git-ignored. Only use `development` URLs here; production URLs belong only in the hosting
 provider's settings (Phase 6).
 
+## Builds
+
+| Command | Base path | Backend |
+|---|---|---|
+| `npm run dev` / `npm run build` | `/` | `.env.development.local` (git-ignored) |
+| `npm run build:pages` | `/adminflow-v1/` | `.env.pages` → Neon `development` (GitHub Pages, temporary) |
+
 ## Account flow
 
 1. Owner/Admin opens **Jemput staf** on the home screen, picks a role and taps **Buat pautan**

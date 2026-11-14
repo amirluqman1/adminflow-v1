@@ -2,7 +2,8 @@
 import { esc, fmtDate } from './ui.js';
 
 export function inviteLink(token) {
-  return `${location.origin}/#invite=${token}`;
+  // origin + path, so it also works when the app lives under a sub-path (GitHub Pages: /adminflow-v1/)
+  return `${location.origin}${location.pathname}#invite=${token}`;
 }
 
 // Renders the one-time link for an invitation returned by rpc('create_invitation').
