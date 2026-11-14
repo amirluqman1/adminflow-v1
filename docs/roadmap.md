@@ -72,26 +72,26 @@ plan) and `development` (all work). Always say "development", never "dev".
 | 1 | Neon connection & architecture assessment | ✅ Done |
 | 2 | Schema, relationships, RLS, audit (migrations 001–004) | ✅ Done on Neon `development` |
 | 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006), Owner invite re-issue (007) | ✅ Applied on Neon `development` · 155/155 tests PASS (local + `development`) |
-| 3 | Auth, invitations, roles — **approved by owner** | 🟡 In progress (steps 1, 2, 4, 5, 6 done · step 3 being done by the owner in Neon Console) |
-| 4 | Employee management + Staff Directory / Profile UI | — |
+| 3 | Auth, invitations, roles — **approved by owner** | ✅ Done on `development` (2026-11-14) |
+| 4 | Employee management + Staff Directory / Profile UI | ⏳ Next — explain scope and get owner approval first |
 | 5 | Leave & Task Management UI, Activity History | — |
 | 6 | Security testing, UI refinement, deployment (production) | — |
 
-### Phase 3 plan (approved) — status 2026-11-13
+### Phase 3 plan (approved) — done 2026-11-14
 1. ✅ Migrations 005–006 (+ new 007) applied on `development`; Neon Auth test user `admin.b@example.com`
    created (emailVerified=true); `db/tests/security_tests.sql` reinstalled; `test.run_all()` → **155/155 PASS**.
 2. ✅ `db/seed/real_setup.sql` run on `development` with the owner's email (not committed): Group Utama,
    3 Syarikat, 3 outlets, Owner employee. The first token was lost (runner printed `[Object]`), so it was
    re-issued with the new `app.reissue_owner_invitation()` (migration 007). Pending, expires 2026-11-20.
    The token is handed to the owner privately, never committed.
-3. ⏳ Harden Neon Auth on `development` — **owner is doing this himself** in Neon Console
-   (project adminflow-v1 → branch `development` → Settings → Better Auth): turn off Google; turn on
-   Sign-up with Email + "Verify at Sign-up" with **verification code** (links need a custom SMTP provider);
-   keep "Allow Localhost" ON for `development` only. Trusted domain: add the real app domain once hosting is
-   chosen (Phase 6). Next session: re-check with `GET .../auth/oauth_providers` and `.../auth/email_and_password`
-   (expect `providers: []`, `require_email_verification: true`).
-   Until done, an **unverified** sign-up can still sign in (it sees no data, and `accept_invitation` still
-   refuses unverified emails — tested).
+3. ✅ Neon Auth hardened on `development` by the owner (Console → branch `development` → Settings → Auth):
+   Google removed (`providers: []`), "Verify at Sign-up" ON with **verification code**, sign-up/sign-in with
+   email ON, Allow Localhost ON (development only). Verified 2026-11-14: unverified sign-in → 403
+   `EMAIL_NOT_VERIFIED`; Google sign-in → `PROVIDER_NOT_SUPPORTED`; the app sends unverified users to "Sahkan emel".
+   Note: Google was also removed on `production` by mistake (Console defaults to the production branch).
+   Harmless — production is unused and Google must be off there anyway. All other production Auth settings are
+   still default. **Lesson: always check the branch picker in Neon Console before changing settings.**
+   Trusted domains: add the real app domain when hosting is chosen (Phase 6).
 4. ✅ Login & Account screen in `web/` (Vite + `@neondatabase/neon-js`, Bahasa Melayu, mobile-first):
    sign in, sign up, verify email (6-digit OTP), forgot password (OTP), accept invitation (link `/#invite=<token>`
    or pasted code), "not linked" screen, minimal role home. E2E tested in Chromium against `development`.

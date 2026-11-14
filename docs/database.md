@@ -100,8 +100,8 @@ old/new data (invitation token hashes stripped) and timestamp.
 
 ## Known limits / later phases
 - Neon Free plan cannot protect the `production` branch (limit reached). Be careful with production.
-- Neon Auth on `development` still allows Google login and sign-in before email verification (Phase 3 step 3,
-  waiting for owner approval). Unlinked users see nothing; `accept_invitation` refuses unverified emails.
+- Neon Auth on `development`: email + password only, email verification (code) required, Google removed.
+  `production` Auth is still default except Google (removed); harden it fully in Phase 6.
 - OTP codes are stored hashed by Neon Auth, so automated tests mark test users verified via SQL (development only).
 - Leave balances, leave type configuration, attachments (MC slips): later phase.
 - Cloud agent sessions reach `development` only through the environment's allowed hosts (DB, auth, apirest of
