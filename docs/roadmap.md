@@ -164,6 +164,19 @@ UI only; no database change.
   Vercel Hobby is not allowed for commercial use. GitHub Pages on a private repo needs a paid GitHub plan.
 - Owner decided to keep the company details (Syarikat names, SSM numbers, owner name) in the public repo.
 
+### Status at end of 2026-11-14 (start here next session)
+- Live (temporary): https://amirluqman1.github.io/adminflow-v1/ → Neon `development`. Deploys from `main` via
+  GitHub Actions (PR #1, #2 merged). `github-pages` environment allows `main` only. Neon Auth trusted domain on
+  `development`: `https://amirluqman1.github.io` (no trailing dot!).
+- **Owner signed up and accepted the invitation: Owner of Group Utama on `development`** (email not committed).
+  The owner may start entering real staff there — remind them it does NOT move to production automatically;
+  plan a data move in Phase 6 if they want to keep it.
+- Workflow from now on: agent works on its branch → PR → owner merges → auto deploy. Never push to `main`.
+- Not yet verified end-to-end: "Lupa kata laluan" (OTP is hashed, tests can't read it) — owner offered to test.
+- Test fixtures in "HTTP Test Co (development only)": `p4.admin@`, `p4.mgr@`, `p4.staff@`, `http.test@` (example.com).
+  Their passwords lived only in the previous session's scratchpad; recreate test logins if needed.
+- Next: owner feedback on the live app, then Phase 6 (needs owner approval).
+
 ### Phase 6 plan (to propose to the owner)
 Security review & automated tests in the repo (E2E scripts, HTTP smoke), UI polish, real-device check, choose
 hosting, then **production**: apply 001–007, harden Auth (trusted domain, Allow Localhost off, own SMTP
