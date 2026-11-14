@@ -156,8 +156,8 @@ UI only; no database change.
 
 ### Hosting decision (owner, 2026-11-14)
 - **Now (repo public): GitHub Pages**, free for public repos. URL `https://amirluqman1.github.io/adminflow-v1/`.
-  Built by `.github/workflows/deploy-pages.yml` from `main` only, with `npm run build:pages` (`web/.env.pages`,
-  sub-path `/adminflow-v1/`), pointing at Neon **`development`**. Owner sets Settings → Pages → Source:
+  Built by `.github/workflows/deploy-pages.yml` from `main` only, with `npm run build:pages` (sub-path
+  `/adminflow-v1/`; Neon URLs set in the workflow because `.gitignore` blocks `.env.*`), pointing at Neon **`development`**. Owner sets Settings → Pages → Source:
   GitHub Actions, and adds `https://amirluqman1.github.io` to Neon Auth trusted domains on `development`.
 - **When the repo goes private: Cloudflare Pages** (free, allowed for business use, unlimited bandwidth,
   500 builds/month — build `main` only), pointing at Neon **`production`** (Phase 6, owner approval).

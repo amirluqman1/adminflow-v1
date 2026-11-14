@@ -23,6 +23,11 @@ jobs:
     defaults:
       run:
         working-directory: web
+    env:
+      # Public client endpoints of Neon branch "development" (every browser sees them; not secrets).
+      # Kept here because the repo's .gitignore blocks all .env.* files on purpose.
+      VITE_NEON_AUTH_URL: https://ep-green-surf-b3aqwu8p.neonauth.c-4.ap-southeast-1.aws.neon.tech/neondb/auth
+      VITE_NEON_DATA_API_URL: https://ep-green-surf-b3aqwu8p.apirest.c-4.ap-southeast-1.aws.neon.tech/neondb/rest/v1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +37,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run build:pages
+      - name: Check the build is configured (never publish a site without its backend URLs)
+        run: grep -qF "$VITE_NEON_AUTH_URL" dist/assets/*.js && grep -qF "$VITE_NEON_DATA_API_URL" dist/assets/*.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
