@@ -73,8 +73,8 @@ plan) and `development` (all work). Always say "development", never "dev".
 | 2 | Schema, relationships, RLS, audit (migrations 001–004) | ✅ Done on Neon `development` |
 | 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006), Owner invite re-issue (007) | ✅ Applied on Neon `development` · 155/155 tests PASS (local + `development`) |
 | 3 | Auth, invitations, roles — **approved by owner** | ✅ Done on `development` (2026-11-14) |
-| 4 | Employee management + Staff Directory / Profile UI | ⏳ Next — explain scope and get owner approval first |
-| 5 | Leave & Task Management UI, Activity History | — |
+| 4 | Employee management, Staff Directory / Profile, Settings & Access UI | ✅ Done on `development` (2026-11-14) |
+| 5 | Leave & Task Management UI, Activity History | ⏳ Next — explain scope and get owner approval first |
 | 6 | Security testing, UI refinement, deployment (production) | — |
 
 ### Phase 3 plan (approved) — done 2026-11-14
@@ -110,6 +110,28 @@ plan) and `development` (all work). Always say "development", never "dev".
 - "HTTP Test Co (development only)": throwaway group for HTTP/E2E tests — logins `http.test@`, `e2e.n2@`,
   `smoke.stranger@` (unlinked) at example.com; other example.com users are for `test.run_all()`.
   Fully isolated from Group Utama by RLS (tested). Never copy to production.
+
+### Phase 4 (approved, done 2026-11-14) — incl. Settings & Access (owner asked to include it)
+UI only; no database change (all rules already in migrations 001–007).
+- **App shell** (`web/src/app.js`): desktop sidebar (navy), mobile bottom navigation, hash router
+  (`#/`, `#/staf`, `#/staf/baru`, `#/staf/<id>`, `#/staf/<id>/edit`, `#/profil`, `#/tetapan`).
+  Menu per role: Owner/Admin → Utama, Staf, Profil saya, Tetapan · Admin Outlet → Utama, Staf, Profil saya ·
+  Staff → Utama, Profil saya. Pages guard against late loads drawing over a newer page (`ctx.seq`).
+- **Utama**: role-specific counters (dashboard_summary), staff per Syarikat / outlet, "Belum ada akaun" shortcut.
+- **Direktori Staf**: search (name, no., email, phone, position) + filters Syarikat, outlet/HQ, position,
+  status, login access (aktif / ditutup / jemputan menunggu / tiada login). RLS decides who is listed.
+- **Tambah / Edit pekerja**: all employment fields, Syarikat → outlet cascade (Owner may choose group level),
+  client validation for phone/email; database errors shown in BM (duplicates, wrong Syarikat, …).
+- **Profil Staf**: info; account & access — invite link (role limited by caller), revoke, change role
+  (with note), close/reopen login, Admin Outlet outlets (chips), Admin Syarikat (Owner only);
+  deactivate (reason required: closes login + revokes invites) / reactivate. No self role/status controls.
+- **Tetapan & Akses**: Syarikat (Owner add/edit/deactivate), outlets (Owner; Admin in own Syarikat; code
+  auto-uppercase), overview of Admin ↔ Syarikat and Admin Outlet ↔ outlet, pending invitations with revoke.
+- UI permissions live in `web/src/perm.js` and only hide buttons; the database still enforces every rule.
+- Tested: browser E2E on `development` with Owner, Admin, Admin Outlet and Staff logins — 45/45 checks
+  (scope isolation: Admin never sees Syarikat B or the group Owner; Admin Outlet sees own outlet only;
+  Staff has no directory). Test data lives only in "HTTP Test Co (development only)" (`p4.*@example.com`).
+- Note: rapid repeated sign-ins are rate-limited by Neon Auth (seen in scripts only; real users unaffected).
 
 ### Later phases (not now)
 Leave balances & configurable leave types, MC attachments, production protection (paid plan),

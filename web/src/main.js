@@ -1,10 +1,11 @@
-// AdminFlow — Login & Account (Phase 3)
-// Screens: sign in · sign up · verify email (OTP) · forgot password · accept invitation · not linked · home
+// AdminFlow — entry point. Login & Account screens (Phase 3); once the login is linked to an
+// AdminFlow account, the signed-in app (app.js) takes over.
 import {
   client, configured, call, messageFor, ROLE_LABEL,
   captureInviteFromUrl, getInvite, saveInvite, clearInvite,
 } from './api.js';
-import { renderInvitePanel } from './invite.js';
+import { startApp, stopApp } from './app.js';
+import { toast } from './ui.js';
 
 const app = document.getElementById('app');
 const state = { email: '', notice: '' };
@@ -13,6 +14,7 @@ const state = { email: '', notice: '' };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function render(html) {
+  if (document.getElementById('auth-shell').hidden) stopApp();
   app.innerHTML = html;
   const first = app.querySelector('input:not([type=hidden])');
   if (first && !first.value) first.focus();
@@ -68,7 +70,7 @@ async function route() {
   // Is this login linked to an AdminFlow account? (role is null when not linked)
   const summary = await call(() => client.rpc('dashboard_summary'));
   if (summary.error) return showError(messageFor(summary.error));
-  if (summary.data?.role) { clearInvite(); return showHome(user, summary.data); }
+  if (summary.data?.role) { clearInvite(); return showHome(user); }
   if (getInvite()) return showAccept(user);
   return showNotLinked(user);
 }
@@ -286,31 +288,14 @@ function showNotLinked(user) {
   });
 }
 
-function showHome(user, s) {
-  const role = ROLE_LABEL[s.role] || s.role;
-  const stat = (n, label) => `<div class="stat"><b>${Number(n) || 0}</b><span>${esc(label)}</span></div>`;
-  render(`
-    ${takeNotice()}
-    <h1>Selamat datang</h1>
-    ${whoBlock(user)}
-    <p><span class="badge">${esc(role)}</span></p>
-    <div class="stats">
-      ${stat(s.total_staff, 'Jumlah staf')}
-      ${stat(s.active_accounts, 'Akaun aktif')}
-      ${stat(s.pending_leave, 'Cuti menunggu')}
-      ${stat(s.open_tasks, 'Tugasan terbuka')}
-    </div>
-    ${['owner', 'admin'].includes(s.role) ? `
-      <section class="panel">
-        <h2>Jemput staf</h2>
-        <p class="muted">Buat pautan jemputan dan hantar sendiri (salin atau WhatsApp). Staf mesti daftar dengan emel yang sama.</p>
-        <div id="invite-panel"></div>
-      </section>` : ''}
-    <p class="muted">Papan pemuka penuh, direktori staf, cuti dan tugasan akan datang dalam fasa seterusnya.</p>
-    <div class="stack"><button class="secondary" id="signout" type="button">Log keluar</button></div>`);
-  on('signout', signOut);
-  const panel = document.getElementById('invite-panel');
-  if (panel) renderInvitePanel(panel, s.role);
+async function showHome(user) {
+  try {
+    await startApp(user, signOut);
+    const n = state.notice; state.notice = '';
+    if (n) toast(n);
+  } catch (e) {
+    showError(messageFor(e));
+  }
 }
 
 function showError(text) {
@@ -323,6 +308,8 @@ function showError(text) {
 
 async function signOut() {
   await call(() => client.auth.signOut());
+  stopApp();
+  history.replaceState(null, '', location.pathname);
   state.notice = 'Anda telah log keluar.';
   showSignIn();
 }

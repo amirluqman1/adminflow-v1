@@ -6,7 +6,7 @@ Mobile-first staff, leave and task administration for a Malaysian F&B company (~
 - Database & security design: [`docs/database.md`](docs/database.md)
 - Rules for AI agents and contributors: [`AGENTS.md`](AGENTS.md)
 - Migrations and tests: [`db/`](db/README.md)
-- Web app (Login & Account): [`web/`](web/README.md)
+- Web app: [`web/`](web/README.md)
 
 ## Progress
 
@@ -15,6 +15,6 @@ Mobile-first staff, leave and task administration for a Malaysian F&B company (~
 | 1. Neon assessment | ✅ Done |
 | 2. Schema, RLS, audit | ✅ Done on Neon `development` (155/155 security tests pass) |
 | 3. Auth, invitations, roles (UI + Neon Auth hardening) | ✅ Done on `development` |
-| 4. Staff management UI | ⏳ Next (needs owner approval) |
-| 5. Leave & task UI | — |
+| 4. Staff management + Settings & Access UI | ✅ Done on `development` |
+| 5. Leave & task UI, Activity History | ⏳ Next (needs owner approval) |
 | 6. Security testing, polish, deployment | — |

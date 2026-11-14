@@ -29,6 +29,22 @@ const DB_MESSAGES = {
   already_has_account: 'Pekerja ini sudah mempunyai akaun.',
   email_required: 'Alamat emel diperlukan.',
   not_found: 'Rekod tidak dijumpai.',
+  entity_mismatch: 'Outlet itu milik Syarikat lain. Pilih Syarikat yang betul.',
+  last_owner: 'Mesti sentiasa ada sekurang-kurangnya seorang Owner aktif.',
+  not_a_manager: 'Hanya akaun Admin Outlet boleh diberi outlet.',
+  not_an_admin: 'Hanya akaun Admin boleh diberi Syarikat.',
+  account_inactive: 'Akaun ini tidak aktif. Aktifkan akaun dahulu.',
+  owner_exists: 'Kumpulan ini sudah ada Owner aktif.',
+};
+
+// Postgres error classes the Data API passes through (constraint violations etc.)
+const PG_MESSAGES = {
+  '23505': 'Data bertindih: no. pekerja, emel, nama atau kod ini sudah digunakan.',
+  '23514': 'Format tidak sah. Semak telefon (cth 012-345 6789), emel, kod outlet (huruf besar/nombor) dan panjang teks.',
+  '23502': 'Ada maklumat wajib yang belum diisi.',
+  '22007': 'Tarikh tidak sah.',
+  '22008': 'Tarikh tidak sah.',
+  '22P02': 'Nilai tidak sah.',
 };
 
 // Neon Auth error codes (neon-js normalises Better Auth errors to snake_case) → Bahasa Melayu
@@ -59,6 +75,8 @@ export function messageFor(error) {
   if (!error) return '';
   const code = error.code || '';
   if (DB_MESSAGES[error.message]) return DB_MESSAGES[error.message]; // Data API: message = our code
+  if (PG_MESSAGES[code]) return PG_MESSAGES[code];
+  if (code === '42501') return DB_MESSAGES.forbidden;
   const otp = otpMessage(error);
   if (otp) return otp;
   if (AUTH_MESSAGES[code]) return AUTH_MESSAGES[code];
