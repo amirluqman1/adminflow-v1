@@ -82,6 +82,10 @@ export function messageFor(error) {
   if (DB_MESSAGES[error.message]) return DB_MESSAGES[error.message]; // Data API: message = our code
   if (PG_MESSAGES[code]) return PG_MESSAGES[code];
   if (code === '42501') return DB_MESSAGES.forbidden;
+  // App address not in Neon Auth trusted domains (configuration problem, not the user's fault)
+  if (/invalid origin/i.test(error.message || '')) {
+    return 'Alamat app ini belum dibenarkan oleh sistem log masuk. Hubungi Owner/Admin (tetapan "trusted domains" di Neon Auth).';
+  }
   const otp = otpMessage(error);
   if (otp) return otp;
   if (AUTH_MESSAGES[code]) return AUTH_MESSAGES[code];
