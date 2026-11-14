@@ -58,3 +58,57 @@ export function canAssignOutlets(ctx, emp) {
 export function canAssignEntities(ctx, emp) {
   return emp.profile?.role === 'admin' && ctx.me.role === 'owner';
 }
+
+// ---------------------------------------------------------------- leave (mirror of review_leave / submit_leave)
+// emp = enriched employee (loadStaff) of the applicant
+export function canReviewLeave(ctx, emp) {
+  const r = ctx.me.role;
+  if (isSelf(ctx, emp)) return false; // own leave: only Admin self-approve (separate button)
+  switch (emp.effRole) {
+    case 'staff': return r === 'owner' || (r === 'admin' && inMyEntity(ctx, emp)) || (r === 'manager' && ctx.myOutletIds.has(emp.outlet_id));
+    case 'manager': return r === 'owner' || (r === 'admin' && inMyEntity(ctx, emp));
+    default: return r === 'owner'; // admin / owner applicants
+  }
+}
+export const canSelfApprove = (ctx) => ctx.me.role === 'admin';
+
+const hasLogin = (emp) => Boolean(emp.profile?.is_active);
+
+// record / cancel leave on behalf: only for employees without an active login
+export function canActOnBehalf(ctx, emp) {
+  if (isSelf(ctx, emp) || hasLogin(emp) || emp.status !== 'active') return false;
+  const r = ctx.me.role;
+  return r === 'owner' || (r === 'admin' && inMyEntity(ctx, emp) && emp.effRole !== 'owner') || (r === 'manager' && ctx.myOutletIds.has(emp.outlet_id));
+}
+
+// ---------------------------------------------------------------- tasks (mirror of can_manage_task / check_task_assignment)
+export const canCreateTask = (ctx) => ctx.me.role !== 'staff';
+
+export function canAssignTo(ctx, emp) {
+  if (emp.status !== 'active') return false;
+  const r = ctx.me.role;
+  if (r === 'owner' || isSelf(ctx, emp)) return r !== 'staff';
+  if (r === 'admin') return inMyEntity(ctx, emp) && emp.effRole !== 'owner';
+  if (r === 'manager') return ctx.myOutletIds.has(emp.outlet_id);
+  return false;
+}
+
+// t = row of task_overview; assignee = enriched employee (may be undefined if outside scope)
+export function canManageTask(ctx, t, assignee) {
+  const r = ctx.me.role;
+  if (r === 'owner') return true;
+  if (t.created_by_profile_id === ctx.me.id && (r === 'admin' || r === 'manager')) return true;
+  if (r === 'admin') {
+    const outletEnt = t.outlet_id ? ctx.outletById.get(t.outlet_id)?.legal_entity_id : null;
+    return Boolean((assignee && inMyEntity(ctx, assignee) && assignee.effRole !== 'owner') || (outletEnt && ctx.myEntityIds.has(outletEnt)));
+  }
+  if (r === 'manager') return ctx.myOutletIds.has(t.outlet_id) || Boolean(assignee && ctx.myOutletIds.has(assignee.outlet_id));
+  return false;
+}
+
+export function canWorkTask(ctx, t, assignee) {
+  if (t.assigned_employee_id === ctx.me.employee_id) return true;
+  return canManageTask(ctx, t, assignee) && assignee && !hasLogin(assignee);
+}
+
+export const canSeeActivity = (ctx) => ['owner', 'admin'].includes(ctx.me.role);

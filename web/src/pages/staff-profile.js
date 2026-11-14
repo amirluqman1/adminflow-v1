@@ -4,7 +4,7 @@ import { esc, fmtDate, alertBox, options, EMP_TYPE, toast, dialog, busy } from '
 import { loadEmployee } from '../store.js';
 import {
   canEditEmployee, canSetStatus, canSetAccount, canInvite, inviteRoles, roleChoices,
-  canAssignOutlets, canAssignEntities, canManage, isSelf, canSeeDirectory,
+  canAssignOutlets, canAssignEntities, canManage, isSelf, canSeeDirectory, canSeeActivity,
 } from '../perm.js';
 import { showInviteLink } from '../invite.js';
 import { initials } from './staff-list.js';
@@ -51,6 +51,15 @@ export async function renderStaffProfile(ctx, el, id) {
       </dl>
     </section>
 
+    <section class="panel">
+      <h2>Cuti & tugasan</h2>
+      <div class="actions tight">
+        <a class="btn secondary" href="${self ? '#/cuti?tab=saya' : `#/cuti?tab=semua&emp=${e.id}`}">Lihat cuti</a>
+        <a class="btn secondary" href="${self ? '#/tugasan?tab=saya' : `#/tugasan?tab=semua&emp=${e.id}`}">Lihat tugasan</a>
+        ${canSeeActivity(ctx) ? `<a class="btn secondary" href="#/aktiviti?emp=${e.id}">Sejarah aktiviti</a>` : ''}
+      </div>
+      ${!e.profile?.is_active && e.status === 'active' && canSeeDirectory(ctx) ? '<p class="muted small">Pekerja ini tiada login aktif: cuti boleh direkod dan status tugasan dikemas kini bagi pihaknya.</p>' : ''}
+    </section>
     <section class="panel" id="account"></section>
     ${canSetStatus(ctx, e) ? '<section class="panel" id="status"></section>' : ''}`;
 

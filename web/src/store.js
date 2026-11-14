@@ -76,7 +76,7 @@ export async function loadStaff(ctx, { onlyId } = {}) {
       pendingInvite: invByEmp.get(e.id) || null,
       managerOutletIds: profile ? moByProf.get(profile.id) || [] : [],
       adminEntityIds: profile ? aeByProf.get(profile.id) || [] : [],
-      effRole: profile ? profile.role : 'staff',
+      effRole: profile?.is_active ? profile.role : 'staff', // same as app.employee_effective_role
     };
   });
 }

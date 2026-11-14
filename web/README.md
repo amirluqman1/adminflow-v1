@@ -1,8 +1,8 @@
 # AdminFlow web app
 
 Plain HTML/CSS/JS + Vite, using `@neondatabase/neon-js` (Neon Auth + Data API). UI in Bahasa Melayu.
-Done: Login & Account (Phase 3); app shell, Utama, Direktori Staf, Profil Staf, Tetapan & Akses (Phase 4).
-Next: Cuti, Tugasan, Sejarah Aktiviti (Phase 5).
+Done: Login & Account (Phase 3); app shell, Utama, Direktori Staf, Profil Staf, Tetapan & Akses (Phase 4);
+Cuti, Tugasan, Sejarah Aktiviti, notifications (Phase 5). All eight screens of the brief exist.
 
 ## Code map
 
@@ -15,7 +15,7 @@ Next: Cuti, Tugasan, Sejarah Aktiviti (Phase 5).
 | `src/api.js` | Neon client, BM error messages, invite token capture |
 | `src/ui.js` | Escaping, dates, modal dialog, toast, busy buttons |
 | `src/invite.js` | One-time invite link with copy + WhatsApp |
-| `src/pages/*.js` | dashboard, staff-list, staff-form, staff-profile, settings |
+| `src/pages/*.js` | dashboard, staff-list, staff-form, staff-profile, settings, leave, tasks, activity |
 
 ## Run locally (against Neon `development`)
 

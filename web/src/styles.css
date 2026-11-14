@@ -262,3 +262,54 @@ legend { font-weight: 700; color: var(--navy); margin-bottom: 10px; font-size: 1
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .toast.error { background: var(--danger); }
 @media (min-width: 960px) { .toast { bottom: 24px; } }
+
+/* ================================================================ Phase 5 */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 0 0 14px; overflow-x: auto; }
+.tabs a { padding: 10px 12px; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs a.active { color: var(--teal); border-bottom-color: var(--teal); }
+.count { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 12px; text-align: center; }
+.filters.row { flex-direction: row; flex-wrap: wrap; }
+.filters.row > * { flex: 1 1 160px; }
+.inline-date { flex-direction: row; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; }
+.inline-date input { flex: 1; min-width: 0; }
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cards .empty { padding: 24px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed var(--border); border-radius: 10px; }
+.card-item { display: block; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.card-item p { margin: 6px 0 0; }
+.card-item .actions { margin-top: 10px; }
+.link-card { color: inherit; text-decoration: none; }
+.link-card:hover { border-color: var(--teal); }
+.card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.card-top .badges { justify-content: flex-end; }
+.info-badge { background: #e8f0fb; color: #1d4f91; }
+.desc { white-space: pre-wrap; margin: 14px 0 0; }
+.timeline { list-style: none; margin: 8px 0 0; padding: 0 0 0 14px; border-left: 2px solid var(--border); }
+.timeline li { display: flex; flex-direction: column; padding: 4px 0 10px 10px; position: relative; }
+.timeline li::before { content: ''; position: absolute; left: -20px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); }
+.audit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.audit .empty, .audit > .muted { padding: 20px; text-align: center; color: var(--muted); }
+.audit-row { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+.audit-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.audit-row .note { color: var(--navy); margin-top: 4px; }
+.audit-row details { margin-top: 6px; font-size: 13px; }
+.audit-row summary { cursor: pointer; color: var(--teal); font-weight: 600; }
+.diff { margin: 6px 0 0; padding-left: 18px; }
+.diff span { color: var(--muted); }
+.actions.center { justify-content: center; }
+.notifs { list-style: none; margin: 8px 0 0; padding: 0; }
+.notifs li > a, .notifs li > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border); color: inherit; text-decoration: none; }
+.notifs li:last-child > * { border-bottom: 0; }
+.notifs li.unread b::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); margin-right: 6px; vertical-align: middle; }
+.notifs .small { margin: 0; }
+.bottom-nav .more-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 4px; font-size: 11px; min-height: 56px; background: none; border: 0; color: var(--muted); border-radius: 0; }
+.bottom-nav .more-btn svg { width: 22px; height: 22px; }
+.bottom-nav .more-btn.active { color: var(--teal); }
+.more-sheet {
+  position: fixed; right: 8px; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 11;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 200px;
+  box-shadow: 0 8px 24px rgba(20, 45, 57, 0.15); display: flex; flex-direction: column;
+}
+.more-sheet a { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--text); text-decoration: none; font-weight: 600; border-radius: 8px; }
+.more-sheet a.active { color: var(--teal); background: #eef5f4; }
+.more-sheet svg { width: 20px; height: 20px; }
+@media (min-width: 960px) { .more-sheet { display: none !important; } }

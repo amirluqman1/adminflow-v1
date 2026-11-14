@@ -35,6 +35,11 @@ const DB_MESSAGES = {
   not_an_admin: 'Hanya akaun Admin boleh diberi Syarikat.',
   account_inactive: 'Akaun ini tidak aktif. Aktifkan akaun dahulu.',
   owner_exists: 'Kumpulan ini sudah ada Owner aktif.',
+  leave_overlap: 'Tarikh ini bertindih dengan cuti lain yang masih menunggu atau sudah diluluskan.',
+  reason_required: 'Sebab perlu diisi.',
+  not_pending: 'Permohonan ini sudah diproses (tidak lagi menunggu). Muat semula halaman.',
+  invalid_transition: 'Tindakan ini tidak dibenarkan untuk status semasa. Muat semula halaman.',
+  task_locked: 'Tugasan yang sudah selesai, disahkan atau dibatalkan tidak boleh diedit.',
 };
 
 // Postgres error classes the Data API passes through (constraint violations etc.)

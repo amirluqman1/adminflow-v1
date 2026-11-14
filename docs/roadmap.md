@@ -74,8 +74,8 @@ plan) and `development` (all work). Always say "development", never "dev".
 | 2+ | Group → Syarikat → Outlet (005), Admin scoped to Syarikat + Admin self-approval + notifications (006), Owner invite re-issue (007) | ✅ Applied on Neon `development` · 155/155 tests PASS (local + `development`) |
 | 3 | Auth, invitations, roles — **approved by owner** | ✅ Done on `development` (2026-11-14) |
 | 4 | Employee management, Staff Directory / Profile, Settings & Access UI | ✅ Done on `development` (2026-11-14) |
-| 5 | Leave & Task Management UI, Activity History | ⏳ Next — explain scope and get owner approval first |
-| 6 | Security testing, UI refinement, deployment (production) | — |
+| 5 | Leave & Task Management UI, Activity History, notifications | ✅ Done on `development` (2026-11-14) |
+| 6 | Security testing, UI refinement, deployment (production) | ⏳ Next — explain scope and get owner approval first |
 
 ### Phase 3 plan (approved) — done 2026-11-14
 1. ✅ Migrations 005–006 (+ new 007) applied on `development`; Neon Auth test user `admin.b@example.com`
@@ -132,6 +132,32 @@ UI only; no database change (all rules already in migrations 001–007).
   (scope isolation: Admin never sees Syarikat B or the group Owner; Admin Outlet sees own outlet only;
   Staff has no directory). Test data lives only in "HTTP Test Co (development only)" (`p4.*@example.com`).
 - Note: rapid repeated sign-ins are rate-limited by Neon Auth (seen in scripts only; real users unaffected).
+
+### Phase 5 (approved, done 2026-11-14)
+UI only; no database change.
+- **Cuti** (`#/cuti`): tabs "Perlu tindakan" (with count) / "Cuti saya" / "Semua" (search, status, type).
+  Apply (type, dates, reason; end ≥ start), record on behalf of **no-login** staff, approve (note optional),
+  reject (reason required, applicant sees it), cancel pending. Admin "Lulus sendiri" with warning (Owner notified,
+  tagged). Overlap refused in BM. Buttons follow the approval matrix (`perm.js` mirrors `review_leave`).
+- **Tugasan** (`#/tugasan`, `#/tugasan/<id>`): tabs "Tugasan saya" / "Perlu disahkan" / "Semua"; filters
+  open / overdue / status / outlet; overdue first. Create/edit (assignee limited to scope, due date-time, priority).
+  Flow To Do → Sedang dibuat → Selesai → Disahkan; send back (reason) and cancel (reason); assignee never verifies
+  own task; managers update status on behalf of no-login staff only; timeline of who/when. Actions lock after
+  success until the page refreshes (no double transitions).
+- **Sejarah Aktiviti** (`#/aktiviti`, Owner/Admin): audit trail with BM action names, actor, target, note,
+  field-by-field changes in BM; filters category / employee / date range; "Muat lagi" paging (50).
+- **Utama**: personal + scope counters linking to Cuti/Tugasan; notifications list with "Tanda semua dibaca".
+- **Profil Staf**: links to that person's leave, tasks and activity.
+- Phone navigation: max 5 buttons; extra items under **"Lagi"** (Owner/Admin: Profil saya, Aktiviti, Tetapan).
+- Tested on `development`: Phase 5 E2E 42/42 (all four roles, incl. on-behalf, send-back, self-approve +
+  Owner notification, audit filters) and Phase 4 E2E re-run 45/45 (no regressions).
+- Known limit (RLS by design): Staff do not see the *name* of who approved/rejected their leave (only date +
+  note), because they cannot read other people's records. Can be added later with a small DB view if wanted.
+
+### Phase 6 plan (to propose to the owner)
+Security review & automated tests in the repo (E2E scripts, HTTP smoke), UI polish, real-device check, choose
+hosting, then **production**: apply 001–007, harden Auth (trusted domain, Allow Localhost off, own SMTP
+optional), seed real company, owner sign-up. Production steps need explicit owner approval.
 
 ### Later phases (not now)
 Leave balances & configurable leave types, MC attachments, production protection (paid plan),
