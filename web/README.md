@@ -34,7 +34,7 @@ provider's settings (Phase 6).
 | Command | Base path | Backend |
 |---|---|---|
 | `npm run dev` / `npm run build` | `/` | `.env.development.local` (git-ignored) |
-| `npm run build:pages` | `/adminflow-v1/` | `.env.pages` → Neon `development` (GitHub Pages, temporary) |
+| `npm run build:pages` | `/adminflow-v1/` | Neon `development`: URLs in `.github/workflows/deploy-pages.yml` (CI) or `.env.pages` locally (git-ignored) |
 
 ## Account flow
 
